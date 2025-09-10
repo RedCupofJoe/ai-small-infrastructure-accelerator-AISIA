@@ -1,0 +1,9 @@
+[Container]
+Image=docker.io/flowiseai/flowise
+Volume=flowise_data:/opt/flowise/data:Z
+PublishPort=3000:3220
+AutoUpdate=registry
+
+[Service]
+Restart=always
+
