@@ -1,0 +1,35 @@
+[Unit]
+Description=ComfyUI Container
+# Wait for network and other services to be available
+After=network-online.target
+
+[Container]
+# The name of your container
+ContainerName=comfyui
+# The image to pull and run from the git repository's README
+Image=docker.io/redcupofjoe/comfyui:main
+# Use --device for NVIDIA GPU support
+Device=/dev/nvidiactl:/dev/nvidiactl:rwm
+Device=/dev/nvidia-uvm:/dev/nvidia-uvm:rwm
+Device=/dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools:rwm
+Device=/dev/nvidia0:/dev/nvidia0:rwm
+# The ports to expose on the local host (e.g., ComfyUI's web interface)
+PublishPort=127.0.0.1:8188:8188
+# The volume for persistent data, mapped to a directory in your home folder
+Volume=%h/comfyui-data:/opt/ComfyUI/models:Z
+# The user to run as (rootless)
+User=YOUR_USERNAME
+# The working directory inside the container
+WorkingDir=/opt/ComfyUI
+# The command to start the web server
+Cmd=/opt/ComfyUI/run_nvidia_gpu.sh
+# Set to 'always' to ensure it restarts on failure or reboot
+Restart=always
+
+[Service]
+# The service type. "notify" is generally recommended for Podman containers.
+Type=notify
+
+[Install]
+# Enable the service at boot
+WantedBy=default.target
