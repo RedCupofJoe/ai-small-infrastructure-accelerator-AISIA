@@ -1,0 +1,41 @@
+# Quadlet container unit: CPU-only ComfyUI
+# Generates a systemd --user unit named: comfyui-cpu.service
+# You can enable it with: systemctl --user enable --now comfyui-cpu.service
+
+[Unit]
+Description=ComfyUI (CPU) - Quadlet container
+# Ensure basic network is up before starting
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# Human-friendly container name visible to `podman ps`
+ContainerName=comfyui-cpu
+
+# Image that you already built (or will build) for CPU
+# e.g. from your Containerfile.cpu workflow:
+#   podman build -t localhost/comfyui-cpu:latest -f Containerfile.cpu .
+Image=localhost/comfyui-cpu:latest
+
+# Bind-mount models from the host so images remain small and upgrades are easy
+Volume=%h/comfyui-data:/opt/ComfyUI/models:Z
+
+# Bind ComfyUI to loopback only (127.0.0.1:8188)
+PublishPort=127.0.0.1:8188:8188
+
+# Set working directory inside the container
+WorkingDir=/opt/ComfyUI
+
+# Explicitly run CPU mode
+Cmd=python3 main.py --listen 0.0.0.0 --cpu
+
+# Auto-restart if it exits or on user-session restart
+Restart=always
+
+[Service]
+# Podman recommends Type=notify for Quadlet containers
+Type=notify
+
+[Install]
+WantedBy=default.target
+

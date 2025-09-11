@@ -1,0 +1,56 @@
+# Quadlet container unit: GPU-enabled ComfyUI (NVIDIA CDI)
+# Generates a systemd --user unit named: comfyui-gpu.service
+# Enable with: systemctl --user enable --now comfyui-gpu.service
+#
+# REQUIREMENTS (host):
+#   1) Working NVIDIA driver (nvidia-smi OK)
+#   2) NVIDIA Container Toolkit (nvidia-container-toolkit, nvidia-ctk)
+#   3) CDI spec generated:
+#        sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
+#   4) Rootless + SELinux: disable label to avoid NVML permission issues
+
+[Unit]
+Description=ComfyUI (GPU) - Quadlet container
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+ContainerName=comfyui-gpu
+
+# Your GPU image built from Containerfile.gpu
+#   podman build -t localhost/comfyui-gpu:latest -f Containerfile.gpu .
+Image=localhost/comfyui-gpu:latest
+
+# Mount host models
+Volume=%h/comfyui-data:/opt/ComfyUI/models:Z
+
+# Listen on localhost:8188
+PublishPort=127.0.0.1:8188:8188
+
+# Working directory
+WorkingDir=/opt/ComfyUI
+
+# *** GPU access via CDI ***
+# Map "all" NVIDIA GPUs into the container using CDI devices:
+# This is equivalent to `--device nvidia.com/gpu=all`
+Device=nvidia.com/gpu=all
+
+# Recommended in rootless + SELinux to allow NVML and /dev/nvidia* access
+# This maps to `--security-opt label=disable`
+SecurityLabelDisable=true
+
+# Minimal capabilities for CUDA use (no display)
+Environment=NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# Launch ComfyUI using CUDA device 0
+Cmd=python3 main.py --listen 0.0.0.0 --cuda-device 0
+
+# Restart policy
+Restart=always
+
+[Service]
+Type=notify
+
+[Install]
+WantedBy=default.target
+
