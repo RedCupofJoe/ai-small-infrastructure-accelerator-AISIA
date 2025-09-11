@@ -1,10 +1,9 @@
 [Unit]
 Description=ComfyUI Container
 # Wait for network and other services to be available
-After=network-online.target
+After=network-online.target nvidia-persistenced.service
 
 [Container]
-# The name of your container
 ContainerName=comfyui
 # The image to pull and run from the git repository's README
 Image=docker.io/redcupofjoe/comfyui:main
@@ -14,7 +13,7 @@ Device=/dev/nvidia-uvm:/dev/nvidia-uvm:rwm
 Device=/dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools:rwm
 Device=/dev/nvidia0:/dev/nvidia0:rwm
 # The ports to expose on the local host (e.g., ComfyUI's web interface)
-PublishPort=127.0.0.1:8188:8188
+PublishPort=8188:8188
 # The volume for persistent data, mapped to a directory in your home folder
 Volume=%h/comfyui-data:/opt/ComfyUI/models:Z
 # The user to run as (rootless)
