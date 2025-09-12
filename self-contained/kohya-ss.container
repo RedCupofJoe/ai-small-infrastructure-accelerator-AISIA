@@ -1,0 +1,52 @@
+# kohya-ss.container  (rootless Quadlet)
+[Unit]
+Description=Kohya's GUI (kohya_ss) - Gradio training UI
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# Upstream image referenced by the repo’s compose
+# (You may build locally instead; see notes below)
+Image=ghcr.io/bmaltais/kohya-ss-gui:latest
+ContainerName=kohya-ss-gui
+# Expose GUI (defaults to 7860 in upstream docs/compose)
+PublishPort=7860:7860
+
+# Persistent volumes similar to the repo’s docker-compose
+# Adjust host paths as needed
+Volume=%h/containers/kohya-ss/dataset:/dataset
+Volume=%h/containers/kohya-ss/dataset/images:/app/data
+Volume=%h/containers/kohya-ss/logs:/app/logs
+Volume=%h/containers/kohya-ss/outputs:/app/outputs
+Volume=%h/containers/kohya-ss/regularization:/app/regularization
+Volume=%h/containers/kohya-ss/config:/app/config
+Volume=%h/containers/kohya-ss/cache:/home/1000/.cache
+Volume=%h/containers/kohya-ss/cache:/home/1000/.config
+Volume=%h/containers/kohya-ss/cache/.triton:/home/1000/.triton
+Volume=%h/containers/kohya-ss/cache/.nv:/home/1000/.nv
+Volume=%h/containers/kohya-ss/cache/.keras:/home/1000/.keras
+
+# Useful env from compose
+Environment=SAFETENSORS_FAST_GPU=1
+Environment=TENSORBOARD_PORT=6006
+
+# Optional: set a fixed port if you run A1111 at 7860 as well
+# (kohya supports --server_port, see discussion)
+# Environment=KOHYA_PORT=7861
+
+# Optional GPU toggles (enable if you have NVIDIA hook installed)
+# Environment=NVIDIA_VISIBLE_DEVICES=all
+# Environment=NVIDIA_DRIVER_CAPABILITIES=all
+
+# Auto-update when image changes (pulls on restart/reload)
+AutoUpdate=registry
+# Restart policy
+Restart=always
+
+# If you need to pass explicit args, uncomment the next line.
+# It forces kohya to listen on all interfaces and a specific port.
+# Exec=./gui.sh --listen 0.0.0.0 --server_port ${KOHYA_PORT:-7860} --headless
+
+[Install]
+WantedBy=default.target
+
