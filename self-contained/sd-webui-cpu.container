@@ -1,0 +1,19 @@
+[Unit]
+Description=Stable Diffusion WebUI (AUTOMATIC1111) - CPU
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=ghcr.io/ai-dock/stable-diffusion-webui:latest-cpu
+PublishPort=7862:7860
+Volume=%h/sd-webui/data:/data:Z
+Environment=COMMANDLINE_ARGS=--listen --api
+AutoUpdate=registry
+Restart=always
+
+[Service]
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target
+

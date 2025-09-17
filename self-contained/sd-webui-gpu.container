@@ -1,0 +1,30 @@
+[Unit]
+Description=Stable Diffusion WebUI (AUTOMATIC1111) - GPU (NVIDIA, CDI)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=ghcr.io/ai-dock/stable-diffusion-webui:latest-cuda
+# Expose WebUI on :7860
+PublishPort=7861:7860
+# Persist everything under /data in the container
+Volume=%h/sd-webui/data:/data:Z
+# Enable GPU via CDI
+Device=nvidia.com/gpu=all
+
+# Pass A1111 launch flags via env var supported by the WebUI
+# Common flags: --listen (bind 0.0.0.0), --xformers (CUDA perf), --api (for integrations)
+Environment=COMMANDLINE_ARGS=--listen --xformers --api
+
+# Optional: auto-update image on restart (comment if you prefer pinning)
+AutoUpdate=registry
+# Restart policy
+Restart=always
+
+[Service]
+# Give a little grace on start
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target
+
