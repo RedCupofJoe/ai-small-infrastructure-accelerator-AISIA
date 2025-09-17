@@ -1,0 +1,37 @@
+# ~/.config/containers/systemd/textgen-webui-cpu.container
+[Unit]
+Description=Text Generation WebUI (oobabooga) - Quadlet (CPU only)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# CPU-only image
+Image=atinoda/text-generation-webui:default-cpu
+
+ContainerName=textgen-webui-cpu
+PublishPort=5002
+# Uncomment if you also want the API/streaming endpoints:
+# PublishPort=5000:5000
+# PublishPort=5005:5005
+
+# Persist user data on the host under ~/.local/share/textgen/user_data/*
+Volume=%h/.local/share/textgen/user_data/models:/app/user_data/models:Z
+Volume=%h/.local/share/textgen/user_data/loras:/app/user_data/loras:Z
+Volume=%h/.local/share/textgen/user_data/presets:/app/user_data/presets:Z
+Volume=%h/.local/share/textgen/user_data/prompts:/app/user_data/prompts:Z
+Volume=%h/.local/share/textgen/user_data/training:/app/user_data/training:Z
+# Optional: persist extensions and HuggingFace cache
+# Volume=%h/.local/share/textgen/user_data/extensions:/app/user_data/extensions:Z
+# Volume=%h/.cache/huggingface:/app/user_data/cache/huggingface:Z
+
+# Extra launch args (add more as needed)
+Environment=EXTRA_LAUNCH_ARGS=--listen --verbose
+
+# Good hygiene
+AutoRemove=no
+Timezone=Etc/UTC
+# AutoUpdate=registry   # uncomment if you want auto-pull on restart
+
+[Install]
+WantedBy=default.target
+

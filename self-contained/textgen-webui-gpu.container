@@ -1,0 +1,47 @@
+
+[Unit]
+Description=Text Generation WebUI (oobabooga) - Quadlet (rootless)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# ---- Choose ONE image ----
+Image=atinoda/text-generation-webui:default-nvidia
+# For CPU-only, switch to:
+# Image=atinoda/text-generation-webui:default-cpu
+
+ContainerName=textgen-webui
+# Map the WebUI; uncomment the API/stream ports if you enable the API
+ PublishPort=5000:5000
+# PublishPort=5005:5005
+
+# Persistent user data (v3 layout uses /app/user_data/*)
+# These will be created under your home; :Z for SELinux
+Volume=%h/.local/share/textgen/user_data/models:/app/user_data/models:Z
+Volume=%h/.local/share/textgen/user_data/loras:/app/user_data/loras:Z
+Volume=%h/.local/share/textgen/user_data/presets:/app/user_data/presets:Z
+Volume=%h/.local/share/textgen/user_data/prompts:/app/user_data/prompts:Z
+Volume=%h/.local/share/textgen/user_data/training:/app/user_data/training:Z
+# Extensions are optional to persist; uncomment if you want them on disk:
+# Volume=%h/.local/share/textgen/user_data/extensions:/app/user_data/extensions:Z
+# Cache for HF transformers (optional but speeds downloads)
+Volume=%h/.cache/huggingface:/app/user_data/cache/huggingface:Z
+
+# Make the UI listen on all interfaces; add your own args here
+Environment=EXTRA_LAUNCH_ARGS=--listen --verbose
+# To auto-load a model at boot, append for example:
+# Environment=EXTRA_LAUNCH_ARGS=--listen --verbose --model TheBloke/Llama-2-7B-GGUF
+
+# Good hygiene
+AutoRemove=no
+Timezone=Etc/UTC
+# Pull updates automatically on restart (optional)
+# AutoUpdate=registry
+
+# ---- NVIDIA GPU via CDI (remove if CPU-only) ----
+# Requires: `sudo nvidia-ctk cdi generate` once on the host
+Device=nvidia.com/gpu=all
+
+[Install]
+WantedBy=default.target
+
