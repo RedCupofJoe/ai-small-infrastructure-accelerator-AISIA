@@ -21,7 +21,7 @@ Image=localhost/comfyui-cpu:latest
 Volume=%h/comfyui-data:/opt/ComfyUI/models:Z
 
 # Bind ComfyUI to loopback only (127.0.0.1:8100)
-PublishPort=127.0.0.1:8100:8188
+PublishPort=127.0.0.1:8102:8188
 
 # Set working directory inside the container
 WorkingDir=/opt/ComfyUI
