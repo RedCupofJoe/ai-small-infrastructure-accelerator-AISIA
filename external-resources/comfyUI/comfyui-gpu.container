@@ -24,8 +24,8 @@ Image=localhost/comfyui-gpu:latest
 # Mount host models
 Volume=%h/comfyui-data:/opt/ComfyUI/models:Z
 
-# Listen on localhost:8188
-PublishPort=127.0.0.1:8188:8188
+# Listen on localhost:8100
+PublishPort=127.0.0.1:8100:8188
 
 # Working directory
 WorkingDir=/opt/ComfyUI
