@@ -1,0 +1,33 @@
+[Unit]
+Description=Ollama (CPU) via Podman Quadlet
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# Image
+Image=docker.io/ollama/ollama:latest
+# Bind only to localhost by default (change to 0.0.0.0 to expose on LAN)
+PublishPort=127.0.0.1:11402:11434
+
+# Persist models on host
+Volume=%h/.ollama:/root/.ollama:Z
+
+# Helpful envs (optional—tweak as you like)
+Environment=OLLAMA_HOST=0.0.0.0
+Environment=OLLAMA_KEEP_ALIVE=10m
+
+# Security / stability
+Label=io.containers.autoupdate=registry
+# Uncomment if you need more shared memory (some larger models benefit)
+# Tmpfs=/dev/shm:rw,nodev,nosuid,size=8g
+
+# Restart policy
+Restart=on-failure
+StopTimeout=60
+
+[Service]
+# Give it a sensible start limit
+RestartSec=3
+
+[Install]
+WantedBy=default.target
