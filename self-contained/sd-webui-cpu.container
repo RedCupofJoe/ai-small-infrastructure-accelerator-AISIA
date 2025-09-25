@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Container]
 Image=ghcr.io/ai-dock/stable-diffusion-webui:latest-cpu
-PublishPort=7862:7860
+PublishPort=9202:7860
 Volume=%h/sd-webui/data:/data:Z
 Environment=COMMANDLINE_ARGS=--listen --api
 AutoUpdate=registry
