@@ -1,0 +1,47 @@
+[Unit]
+Description=n8n (Podman Quadlet, SQLite, bridge)
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+Image=n8nio/n8n:latest
+ContainerName=n8n
+# UI/API
+PublishPort=5678:5678
+
+# Persist n8n data (SQLite DB, workflows, creds)
+Volume=%h/n8n-data:/home/node/.n8n:Z
+
+# OPTIONAL: mount local asset folders you want n8n to use
+# (add more Volume= lines as needed)
+# Volume=/path/on/host:/workspace/assets:Z
+
+# Environment
+Environment=GENERIC_TIMEZONE=Etc/UTC
+Environment=N8N_PROTOCOL=http
+Environment=N8N_PORT=5678
+# If you’ll ever reverse-proxy with a domain, you can add:
+# Environment=N8N_HOST=your.lan
+# or a full override:
+# Environment=WEBHOOK_URL=http://your.lan/
+
+# Helpful /etc/hosts aliases (optional)
+AddHost=host.docker.internal:host.containers.internal
+AddHost=host.lan:host.containers.internal
+
+# Auto-update if you choose to use `podman auto-update --user`
+Label=io.containers.autoupdate=registry
+
+# Healthcheck (simple TCP probe)
+HealthCmd=/bin/sh -c 'exec 3<>/dev/tcp/127.0.0.1/5678 || exit 1'
+HealthInterval=30s
+HealthRetries=5
+HealthStartPeriod=30s
+HealthTimeout=3s
+
+[Service]
+Restart=always
+TimeoutStopSec=60
+
+[Install]
+WantedBy=default.target
