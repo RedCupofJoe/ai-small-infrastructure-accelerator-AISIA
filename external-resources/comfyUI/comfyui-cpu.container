@@ -20,7 +20,7 @@ Image=localhost/comfyui-cpu:latest
 # Bind-mount models from the host so images remain small and upgrades are easy
 Volume=%h/comfyui-data:/opt/ComfyUI/models:Z
 
-# Bind ComfyUI to loopback only (127.0.0.1:8188)
+# Bind ComfyUI to loopback only (127.0.0.1:8100)
 PublishPort=127.0.0.1:8100:8188
 
 # Set working directory inside the container
