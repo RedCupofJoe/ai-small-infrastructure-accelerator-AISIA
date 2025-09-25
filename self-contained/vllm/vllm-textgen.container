@@ -1,8 +1,8 @@
-# vllm-comfyui.container  — one vLLM instance paired to one application
-# Replace <app>, <model>, and <host_port> below.
+# vllm-textgen.container  — one vLLM instance paired to one application
+# Replace oogabooga, <model>, and 5009 below.
 
 [Unit]
-Description=vLLM server for <app>
+Description=vLLM server for ComfyUI
 After=network-online.target
 Wants=network-online.target
 
@@ -29,7 +29,7 @@ Device=nvidia.com/gpu=all
 
 # --- Networking ---
 # Bind only to localhost on the host (safer). Change to 0.0.0.0 if LAN access is needed.
-PublishPort=127.0.0.1:<host_port>:8000
+PublishPort=127.0.0.1:5009:8000
 
 # --- Caches & model downloads (persist on host) ---
 # Each app gets its own cache dirs to avoid collisions.
