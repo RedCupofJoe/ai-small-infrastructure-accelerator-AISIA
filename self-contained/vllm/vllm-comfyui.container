@@ -1,0 +1,68 @@
+# vllm-comfyui.container  — one vLLM instance paired to one application
+# Replace <app>, <model>, and <host_port> below.
+
+[Unit]
+Description=vLLM server for <app>
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# --- Image ---
+# Use the OpenAI-compatible vLLM server image
+Image=vllm/vllm-openai:latest
+# If you prefer pinning: Image=vllm/vllm-openai:v0.7.x
+
+# --- Command ---
+# Minimal, reliable defaults; add flags in VLLM_EXTRA_ARGS if needed
+Command=/bin/bash -lc
+Arguments=vllm serve "${VLLM_MODEL}" --host 0.0.0.0 --port 8000 \
+  --gpu-memory-utilization="${VLLM_GPU_UTIL:=0.40}" ${VLLM_EXTRA_ARGS}
+
+# --- GPU (CDI recommended) ---
+# Requires: sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
+Device=nvidia.com/gpu=all
+# (If you must fall back without CDI, comment the line above and uncomment these)
+# AddDevice=/dev/nvidiactl
+# AddDevice=/dev/nvidia-uvm
+# AddDevice=/dev/nvidia0
+# AddDevice=/dev/dri
+
+# --- Networking ---
+# Bind only to localhost on the host (safer). Change to 0.0.0.0 if LAN access is needed.
+PublishPort=127.0.0.1:<host_port>:8000
+
+# --- Caches & model downloads (persist on host) ---
+# Each app gets its own cache dirs to avoid collisions.
+Volume=%h/vllm/<app>/hf:/root/.cache/huggingface
+Volume=%h/vllm/<app>/vllm:/root/.cache/vllm
+
+# --- Environment ---
+# Put your per-app settings here or in the inline Environment lines below.
+# If you prefer a file: create %h/vllm/<app>/vllm.env and uncomment the next line.
+# EnvironmentFile=%h/vllm/<app>/vllm.env
+
+# Set the model and common knobs inline (comment out if using EnvironmentFile)
+Environment=VLLM_MODEL=<model>               # e.g. meta-llama/Meta-Llama-3.1-8B-Instruct
+Environment=VLLM_GPU_UTIL=0.40               # conservative when sharing a GPU
+Environment=VLLM_EXTRA_ARGS=--max-model-len 8192
+# If you need a gated model:
+# Environment=HUGGING_FACE_HUB_TOKEN=hf_xxx
+
+# --- Healthcheck (optional but helpful) ---
+HealthCmd=curl -sf http://127.0.0.1:8000/v1/models || exit 1
+HealthInterval=30s
+HealthTimeout=5s
+HealthRetries=10
+HealthStartPeriod=120s
+
+# --- Security / logging ---
+NoNewPrivileges=true
+Environment=PYTHONUNBUFFERED=1
+
+[Service]
+Restart=always
+# Large models may take a while to start the first time
+TimeoutStartSec=15min
+
+[Install]
+WantedBy=default.target
