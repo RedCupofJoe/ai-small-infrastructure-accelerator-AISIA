@@ -1,0 +1,91 @@
+# unsloth.container
+#
+# Quadlet for Unsloth's official Docker image:
+#   Image docs: https://docs.unsloth.ai/get-started/install-and-update/docker :contentReference[oaicite:0]{index=0}
+#
+# This runs JupyterLab from the image and publishes it on host port 12000.
+
+[Unit]
+Description=Unsloth JupyterLab (AISIA)
+# When we start Unsloth, we also want the vLLM backend available
+# (defined in unsloth-vllm.container below).
+Wants=unsloth-vllm.service
+
+# If you prefer vLLM to start *after* Unsloth is up, you can add:
+# After=unsloth-vllm.service
+# (omitted here to avoid strict ordering dependency)
+
+[Container]
+# --- Image & basic container identity ---------------------------------------
+
+# Official Unsloth image from Docker Hub
+Image=unsloth/unsloth:latest
+
+# Optional: give the container a stable name instead of systemd-unsloth-XXXX
+ContainerName=unsloth
+
+# --- Ports -------------------------------------------------------------------
+
+# Unsloth's Jupyter Lab default internal port is 8888 (JUPYTER_PORT).
+# We map host port 12000 -> container port 8888.
+PublishPort=12000:8888
+
+# --- Environment -------------------------------------------------------------
+
+# Jupyter password; CHANGE THIS before exposing beyond localhost.
+# This is what you'll use to log into the Jupyter UI.
+Environment=JUPYTER_PASSWORD=unsloth
+
+# Optionally override the internal Jupyter port if you want (default is 8888).
+# If you change JUPYTER_PORT, be sure to match the container-side port
+# in PublishPort above.
+# Environment=JUPYTER_PORT=8888
+
+# --- Volumes -----------------------------------------------------------------
+
+# Persistent work directory mount.
+# Replace /home/YOURUSER with your actual username path OR whatever location
+# in your AISIA repo you want to bind.
+#
+# Example if you want it in your AISIA repo:
+#   /home/YOURUSER/ai-small-infrastructure-accelerator-AISIA/data/unsloth-work
+#
+# The :Z suffix tells SELinux to relabel the volume so the container can access it.
+Volume=/home/YOURUSER/unsloth-work:/workspace/work:Z
+
+# --- GPU / NVIDIA ------------------------------------------------------------
+#
+# Unsloth’s Docker docs expect `--gpus all` when using Docker. Under Podman
+# with NVIDIA CDI, the common equivalent is `--device nvidia.com/gpu=all`.
+# Quadlet’s AddDevice maps directly to `--device` :contentReference[oaicite:1]{index=1}
+
+# Expose all GPUs via NVIDIA CDI (requires NVIDIA Container Toolkit/CDI set up).
+AddDevice=nvidia.com/gpu=all
+
+# GPU access + SELinux:
+# If you hit AVC denials, the simplest approach is to disable labels:
+SecurityLabelDisable=true
+
+# If you want to keep SELinux enforcing, you can instead:
+#  - Remove SecurityLabelDisable=true above
+#  - Ensure your bind-mounts are labeled with :z or :Z (already done)
+#  - Make sure your NVIDIA hooks/CDI are configured for SELinux.
+
+# --- Working directory -------------------------------------------------------
+
+# Optional: set the working directory inside the container.
+WorkingDir=/workspace/work
+
+# --- Extra exec args ---------------------------------------------------------
+# The unsloth/unsloth image already has an entrypoint that launches JupyterLab
+# using the env vars above (JUPYTER_PASSWORD, JUPYTER_PORT, etc), so we don't
+# need to add an Exec= line here.
+
+[Service]
+# Restart on failure so it comes back after crashes or reboots.
+Restart=always
+RestartSec=5
+
+[Install]
+# Standard for user services managed by systemd --user
+WantedBy=default.target
