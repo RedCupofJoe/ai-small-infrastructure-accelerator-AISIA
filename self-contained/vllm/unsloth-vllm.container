@@ -1,0 +1,94 @@
+# unsloth-vllm.container
+#
+# Quadlet for running vLLM's OpenAI-compatible API server:
+#   Image: vllm/vllm-openai (Docker Hub)
+#   Example usage: docker run ... vllm/vllm-openai:latest --model <hf-model> :contentReference[oaicite:3]{index=3}
+#
+# This will publish the vLLM server on host port 12009 and
+# is designed to be started/stopped together with the Unsloth quadlet.
+
+[Unit]
+Description=vLLM OpenAI-compatible server (AISIA, Unsloth backend)
+# Tie lifecycle to Unsloth:
+# - When unsloth.service is started, systemd will also start this service
+#   (because unsloth.container has Wants=unsloth-vllm.service)
+# - When unsloth.service stops, this will be stopped too.
+PartOf=unsloth.service
+
+[Container]
+# --- Image & container name --------------------------------------------------
+
+# Official vLLM OpenAI-compatible image
+Image=vllm/vllm-openai:latest
+
+# Optional stable name for the container
+ContainerName=unsloth-vllm
+
+# --- Ports -------------------------------------------------------------------
+
+# vLLM's API server listens on container port 8000 by default.
+# We map host port 12009 -> container port 8000.
+PublishPort=12009:8000
+
+# --- Model & Hugging Face token ---------------------------------------------
+#
+# vLLM expects a Hugging Face model via the --model CLI arg. Examples:
+#   meta-llama/Llama-3.1-8B-Instruct
+#   mistralai/Mistral-7B-Instruct-v0.2
+#   Qwen/Qwen2.5-7B-Instruct
+#
+# For many hosted/private models, you'll also need HF auth. The typical pattern:
+#   - Mount ~/.cache/huggingface into the container
+#   - Provide HUGGING_FACE_HUB_TOKEN via env
+
+# Mount host HF cache into container (so models are cached across restarts).
+# Adjust /home/YOURUSER to match your environment.
+Volume=/home/YOURUSER/.cache/huggingface:/root/.cache/huggingface:Z
+
+# If you want to pass a Hugging Face token from a file like:
+#   /home/YOURUSER/.config/vllm/hf.env
+# with contents:
+#   HUGGING_FACE_HUB_TOKEN=hf_XXXXXXXXXXXXXXXXXXXXXXXX
+#
+# you can uncomment this:
+# EnvironmentFile=/home/YOURUSER/.config/vllm/hf.env
+
+# Or, set it inline (less ideal for version control, so commented out by default):
+# Environment=HUGGING_FACE_HUB_TOKEN=hf_XXXXXXXXXXXXXXXXXXXXXXXX
+
+# --- GPU / NVIDIA ------------------------------------------------------------
+
+# Use all available GPUs via NVIDIA CDI.
+AddDevice=nvidia.com/gpu=all
+
+# As with Unsloth, simplify SELinux handling for GPU access:
+SecurityLabelDisable=true
+
+# --- Exec / model configuration ---------------------------------------------
+#
+# The vllm/vllm-openai image uses an ENTRYPOINT that runs the OpenAI server;
+# we just add CLI args here with Exec=, which maps to:
+#   podman run ... vllm/vllm-openai:latest --model <model> ...
+#
+# CHANGE THE MODEL BELOW to whichever HF model you want to serve.
+# The default here is a commonly used ~8B instruct model.
+Exec=--model meta-llama/Llama-3.1-8B-Instruct \
+     --gpu-memory-utilization 0.9 \
+     --max-model-len 8192
+
+# Notes:
+# - You can add more flags as needed, e.g.:
+#     --tensor-parallel-size 2
+#     --safetensors
+#     --trust-remote-code
+# - The OpenAI-style endpoint will be at:
+#     http://localhost:12009/v1/chat/completions
+#   or    http://localhost:12009/v1/completions
+#   depending on which API shape you use.
+
+[Service]
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
