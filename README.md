@@ -8,7 +8,7 @@ AISIA helps you deploy AI tools such as **ComfyUI**, **SDG Hub**,
 **InstructLab**, and others using **simple, persistent, restart-safe
 Quadlet services**.
 
-## 📦 Repository Structure
+## Repository Structure
 
     ai-small-infrastructure-accelerator-AISIA/
     ├── quadlets/                 # Quadlet definitions for user-space systemd services
@@ -24,9 +24,9 @@ Quadlet services**.
     │       └── assets/...
     └── README.md                 # This file
 
-## 🚀 Features
+##  Features
 
-### ✔ Quadlet-based Container Services
+###  Quadlet-based Container Services
 
 All AI tools run as **systemd user services**, giving you:
 
@@ -51,7 +51,7 @@ Uses Podman CDI interface:
 
     AddDevice=nvidia.com/gpu=all
 
-## 🛠 Requirements
+##  Requirements
 
   Component                       Version    Notes
   ------------------------------- ---------- ---------------------------------
@@ -99,7 +99,7 @@ Ensure quadlet uses:
 ./scripts/deploy_quadlet.sh
 ```
 
-## 🔍 3. Check Service Status
+##  3. Check Service Status
 
 ``` bash
 systemctl --user list-units | grep aisia
@@ -107,7 +107,7 @@ systemctl --user status comfyui.service
 journalctl --user -u comfyui -f
 ```
 
-## 📂 4. Persistent Data Locations
+##  4. Persistent Data Locations
 
   Tool          Path
   ------------- -----------------------------
@@ -119,20 +119,20 @@ Fix SELinux if needed:
 sudo chcon -Rt container_file_t ~/aisia-data
 ```
 
-## ♻️ 5. Updating Quadlets
+##  5. Updating Quadlets
 
 ``` bash
 systemctl --user daemon-reload
 systemctl --user restart <service>.service
 ```
 
-## 🧹 6. Uninstall Tools
+##  6. Uninstall Tools
 
 ``` bash
 ./scripts/uninstall_quadlet.sh
 ```
 
-## 📜 License
+##  License
 
 MIT License
 
